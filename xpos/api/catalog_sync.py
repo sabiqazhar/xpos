@@ -79,6 +79,7 @@ def build_scope(pos) -> dict:
 		"item_groups": sorted(row.item_group for row in pos.get("item_groups") or []),
 		"customer_groups": allowed_customer_groups(pos),
 		"templates": [cint(pos.get("show_template_items")), cint(pos.get("hide_variants_items"))],
+		"zero_rated": cint(pos.get("allow_zero_rated_items")),
 		"roles": sorted(frappe.get_roles(user)),
 		"permissions": digest_of(permissions),
 		"feed": FEED_VERSION,
@@ -86,7 +87,7 @@ def build_scope(pos) -> dict:
 
 
 def public_scope(scope: dict) -> dict:
-	keys = ("user", "profile", "company", "warehouse", "price_list", "currency")
+	keys = ("user", "profile", "company", "warehouse", "price_list", "currency", "zero_rated")
 	return {key: scope[key] for key in keys}
 
 

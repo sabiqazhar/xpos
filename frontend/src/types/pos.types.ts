@@ -184,6 +184,8 @@ export interface POSItem {
 	local_item_name?: string;
 	item_group?: string;
 	description?: string;
+	/** 1 when the profile's price list has no price for this item; the till must not sell it at 0. */
+	price_missing?: number;
 	rate: number;
 	uom: string;
 	stock_uom: string;

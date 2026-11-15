@@ -37,6 +37,8 @@ export interface CatalogState {
 	scope_hash: string;
 	snapshot_id: string;
 	price_list: string;
+	/** POS Profile's allow_zero_rated_items, captured with the catalogue the till sells from. */
+	allow_zero_rated: number;
 	activated_at: string;
 	confirmed_at: string;
 	item_count: number;
@@ -51,6 +53,8 @@ export interface CatalogStatus {
 	scopeMatches: boolean;
 	snapshotId: string;
 	priceList: string;
+	/** Whether this profile allows zero-price lines; absent means not allowed. */
+	allowZeroRated: boolean;
 	activatedAt: string | null;
 	pricesAsOf: string | null;
 	ageMs: number | null;
@@ -68,6 +72,7 @@ interface SyncJob {
 	profile: string;
 	snapshot_id: string;
 	price_list: string;
+	allow_zero_rated: number;
 	started_at: string;
 	retention_days: number;
 	phase: Phase;
@@ -86,7 +91,7 @@ interface Resync {
 interface BeginResponse {
 	snapshot_id: string;
 	scope_hash: string;
-	scope: { price_list: string };
+	scope: { price_list: string; zero_rated?: number };
 	total: number;
 	retention_days: number;
 	cursors: SyncJob["cursors"];
@@ -176,6 +181,7 @@ export async function getCatalogStatus(now: number = Date.now()): Promise<Catalo
 		scopeMatches: !!state && state.scope_key === scopeKey(),
 		snapshotId: state?.snapshot_id ?? "",
 		priceList: state?.price_list ?? "",
+		allowZeroRated: !!state?.allow_zero_rated,
 		activatedAt: state?.activated_at ?? null,
 		pricesAsOf: asOf,
 		ageMs,
@@ -248,6 +254,7 @@ function startJob(profile: string, begun: BeginResponse, restarts: number): Sync
 		profile,
 		snapshot_id: begun.snapshot_id,
 		price_list: begun.scope?.price_list || "",
+		allow_zero_rated: begun.scope?.zero_rated ? 1 : 0,
 		started_at: new Date().toISOString(),
 		retention_days: begun.retention_days,
 		phase: "items",
@@ -400,6 +407,7 @@ async function activate(
 		scope_hash: job.scope_hash,
 		snapshot_id: job.snapshot_id,
 		price_list: job.price_list,
+		allow_zero_rated: job.allow_zero_rated,
 		activated_at: now,
 		confirmed_at: now,
 		item_count: 0,

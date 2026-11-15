@@ -320,6 +320,7 @@ export const useItemStore = defineStore("items", () => {
 						image: cached.image || "",
 						item_group: cached.item_group || "",
 						rate: cached.rate || 0,
+						price_missing: (cached as { price_missing?: number }).price_missing ?? 0,
 						actual_qty: cached.actual_qty || 0,
 					} as unknown as ItemDetail;
 					selectedItemDetail.value = basicDetail;

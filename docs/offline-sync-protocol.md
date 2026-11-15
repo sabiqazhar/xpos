@@ -9,6 +9,7 @@ How the browser till keeps selling when the server cannot be reached, and how it
 - Credit sales, part payments, returns, customer credit and gift cards are never completed offline.
 - A payment mode works offline only if the POS Profile lists it under **Offline Payment Modes**. The list is empty by default. A listed mode is recorded, not verified.
 - Prices come from the last complete catalogue. The status chip shows when they were last confirmed.
+- A line the profile's price list never priced is flagged **Price unavailable** and cannot be completed offline. Nothing is ever sold at an invented 0 unless the profile allows zero-rated items.
 - It cannot guarantee global stock across disconnected counters. See [offline stock policy](offline-stock-policy.md).
 
 ## Setup
@@ -83,6 +84,7 @@ Only the signed-in user's sales are sent (sales saved before owners were recorde
 
 - Existing endpoints, `create_invoice`, the sale-id dedupe, FBR handling and the desktop endpoints are unchanged.
 - The IndexedDB database keeps its name. Version 3 adds three staging tables only. Queued sales gain `owner: null` and `attempts` when upgraded.
+- `catalog_begin` now also reports the profile's `allow_zero_rated_items` as `scope.zero_rated`; a stored catalogue without it is read as "not allowed", so an upgrade can only refuse a zero-price offline sale, never allow one.
 - The service worker no longer caches `GET /api/method/*` (it was keyed by URL, not by user). The old `xpos-api-cache` is deleted on load. The file cache covers public `/files/` only.
 - A browser still running the previous build keeps working against the new server.
 

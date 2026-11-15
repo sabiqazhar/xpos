@@ -41,7 +41,9 @@ export function useItemTileState(item: Ref<POSItem>) {
 	/** Matches handleAddItem: a template opens the variant picker unless variants are hidden. */
 	const isTemplate = computed(() => !!item.value.has_variants && !posStore.hideVariantsItems);
 
-	const priceMissing = computed(() => !Number(item.value.rate) && !posStore.allowZeroRatedItems);
+	const priceMissing = computed(
+		() => (!!item.value.price_missing || !Number(item.value.rate)) && !posStore.allowZeroRatedItems,
+	);
 
 	const stockTone = computed<"destructive" | "warning" | "success">(() => {
 		const qty = item.value.actual_qty || 0;

@@ -10,6 +10,7 @@ export type BlockerCode =
 	| "customer_credit"
 	| "credit_sale"
 	| "return"
+	| "price"
 	| "payment_mode"
 	| "no_offline_modes"
 	| "catalog"
@@ -26,11 +27,23 @@ export interface OfflinePolicyInput {
 		InvoiceData,
 		"items" | "payments" | "is_credit_sale" | "customer_credit" | "is_return" | "return_against"
 	>;
+	/** POS Profile's allow_zero_rated_items: a free line is only a sale when the profile says so. */
+	allowZeroRatedItems: boolean;
 	offlinePaymentModes: readonly string[];
 	outstanding: number;
 	catalog: Pick<CatalogStatus, "status" | "scopeMatches"> | null;
 	dbState: DbState;
 	storage: Pick<StorageHealth, "level"> | null;
+}
+
+/** A sale line that would reach the server at nothing: free/offer/gift-card lines are not sales. */
+function isChargedAtZero(line: InvoiceData["items"][number]): boolean {
+	if (line.is_free_item || line.is_offer || line.gift_card_issue) return false;
+	const rate = line.rate || 0;
+	const net = line.discount_percentage
+		? rate * (1 - line.discount_percentage / 100)
+		: rate - (line.discount_amount || 0);
+	return net <= 0;
 }
 
 export function offlineSaleBlockers(input: OfflinePolicyInput): OfflineBlocker[] {
@@ -61,6 +74,17 @@ export function offlineSaleBlockers(input: OfflinePolicyInput): OfflineBlocker[]
 		blockers.push({
 			code: "return",
 			message: __("Returns need a live connection."),
+		});
+	}
+
+	const unpriced = input.allowZeroRatedItems ? [] : (invoice.items || []).filter(isChargedAtZero);
+	if (unpriced.length) {
+		blockers.push({
+			code: "price",
+			message: __(
+				"{0} has no usable price, so this sale cannot be completed offline. Connect, fix the price list, or set the line price by hand.",
+				[[...new Set(unpriced.map((line) => line.item_name || line.item_code))].join(", ")],
+			),
 		});
 	}
 

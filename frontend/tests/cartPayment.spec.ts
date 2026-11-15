@@ -84,6 +84,16 @@ describe("checkout gating", () => {
 		cart.addItem(SERIAL);
 		expect(cart.pendingRequirements).toEqual([]);
 	});
+
+	it("flags an item the price list never priced instead of ringing it up at 0", () => {
+		pos.allowZeroRatedItems = false;
+		const cart = cartWithCustomer();
+		cart.addItem({ ...BATCH, rate: 0, price_missing: 1, has_batch_no: false } as POSItem);
+		expect(cart.items[0].pos_price_unavailable).toBe(true);
+		expect(cart.items[0].pos_price_state).toBe("no_price");
+		expect(cart.checkoutBlockers.join(" ")).toContain("no price is configured");
+		pos.allowZeroRatedItems = true;
+	});
 });
 
 describe("rounding row", () => {

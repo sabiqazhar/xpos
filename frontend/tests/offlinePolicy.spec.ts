@@ -14,6 +14,7 @@ const ready = { status: "complete", scopeMatches: true } as const;
 function input(overrides: Partial<OfflinePolicyInput> = {}): OfflinePolicyInput {
 	return {
 		invoice: { items: [], payments: [{ mode_of_payment: "Cash", amount: 10 }] },
+		allowZeroRatedItems: false,
 		offlinePaymentModes: ["Cash"],
 		outstanding: 0,
 		catalog: ready,
@@ -91,6 +92,33 @@ describe("which sales may be completed offline", () => {
 
 	it("refuses returns", () => {
 		expect(codes(input({ invoice: { items: [], payments: [], is_return: true } }))).toContain("return");
+	});
+
+	it("refuses a sale line the price list never priced", () => {
+		const invoice = {
+			items: [{ item_code: "KP-01", item_name: "Unpriced", qty: 1, rate: 0 }],
+			payments: [{ mode_of_payment: "Cash", amount: 0 }],
+		};
+		expect(codes(input({ invoice: invoice as never }))).toEqual(["price"]);
+	});
+
+	it("allows a zero-price line only when the profile allows zero-rated items", () => {
+		const invoice = {
+			items: [{ item_code: "FREE", item_name: "Freebie", qty: 1, rate: 0 }],
+			payments: [{ mode_of_payment: "Cash", amount: 0 }],
+		};
+		expect(codes(input({ invoice: invoice as never, allowZeroRatedItems: true }))).toEqual([]);
+	});
+
+	it("does not read a promotion or a gift card line as an unpriced sale", () => {
+		const invoice = {
+			items: [
+				{ item_code: "A", item_name: "Promo", qty: 1, rate: 0, is_free_item: 1 },
+				{ item_code: "B", item_name: "Offer", qty: 1, rate: 0, is_offer: true },
+			],
+			payments: [{ mode_of_payment: "Cash", amount: 0 }],
+		};
+		expect(codes(input({ invoice: invoice as never }))).toEqual([]);
 	});
 });
 

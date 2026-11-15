@@ -117,6 +117,15 @@ class CatalogSyncTestCase(ERPNextTestSuite):
 		self.assertEqual(codes, [code(n) for n in range(1, 6)])
 		self.assertEqual({row.item_code: row.rate for row in items}[code(3)], 30)
 
+	def test_unpriced_item_is_flagged_and_scope_carries_zero_rated_flag(self):
+		frappe.db.delete("Item Price", {"item_code": code(4), "price_list": PRICE_LIST})
+		started = self.begin()
+		self.assertEqual(started["scope"]["zero_rated"], 0)
+		items = {row.item_code: row for row in self.download(started)}
+		self.assertEqual(items[code(4)]["rate"], 0)
+		self.assertEqual(items[code(4)]["price_missing"], 1)
+		self.assertEqual(items[code(3)]["price_missing"], 0)
+
 	def test_page_size_is_capped(self):
 		started = self.begin()
 		page = catalog_sync.catalog_page(PROFILE, started["cursors"]["items"], 10**6)

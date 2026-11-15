@@ -422,6 +422,7 @@ export const useOfflineStore = defineStore("offline", () => {
 		await Promise.all([refreshCatalogStatus(), refreshStorageHealth()]);
 		return offlineSaleBlockers({
 			invoice: invoiceData,
+			allowZeroRatedItems: !!catalogStatus.value?.allowZeroRated,
 			offlinePaymentModes: posStore.offlinePaymentModes,
 			outstanding,
 			catalog: catalogStatus.value,

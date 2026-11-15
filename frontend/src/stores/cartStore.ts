@@ -724,6 +724,9 @@ export const useCartStore = defineStore("cart", () => {
 				item_name: item.item_name,
 				local_item_name: item.local_item_name,
 				rate: normalizeItemRate(item.rate || 0),
+				// A catalogue price the price list never had is not a price: say so now, not at checkout.
+				pos_price_unavailable: !!item.price_missing,
+				pos_price_state: item.price_missing ? "no_price" : undefined,
 				qty: isReturnMode.value ? -1 : 1,
 				uom: item.uom || item.stock_uom,
 				stock_uom: item.stock_uom,
@@ -1366,14 +1369,22 @@ export const useCartStore = defineStore("cart", () => {
 					!key || !cachedCustomerList || cachedCustomerList === posStore.sellingPriceList;
 				const cachedItem = profilePriced ? await getCachedItemByCode(line.item_code) : null;
 				if (requestId !== priceListRequestId) return;
-				if (cachedItem && (line.uom || line.stock_uom) === cachedItem.stock_uom) {
+				if (
+					cachedItem &&
+					(line.uom || line.stock_uom) === cachedItem.stock_uom &&
+					!cachedItem.price_missing
+				) {
 					line.rate = normalizeItemRate(cachedItem.rate);
 					line.pos_price_unavailable = false;
 					line.pos_price_state = undefined;
 					line.pos_price_key = `${key}|${line.uom || line.stock_uom}`;
 				} else {
+					// A cached rate of 0 from a missing Item Price is not a price the till may charge.
 					line.pos_price_unavailable = true;
-					line.pos_price_state = "needs_connection";
+					line.pos_price_state =
+						cachedItem && (line.uom || line.stock_uom) === cachedItem.stock_uom
+							? "no_price"
+							: "needs_connection";
 				}
 			}
 			return;

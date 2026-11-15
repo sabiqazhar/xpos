@@ -1368,7 +1368,16 @@ const offlineBlockerMessages = computed(() => {
 	if (offlineStore.isOnline) return [];
 	return offlineSaleBlockers({
 		invoice: {
-			items: cartStore.items.map((item) => ({ gift_card_issue: item.gift_card_issue }) as never),
+			items: cartStore.items.map((item) => ({
+				item_code: item.item_code,
+				item_name: item.item_name,
+				rate: item.rate,
+				discount_percentage: item.discount_percentage,
+				discount_amount: item.discount_amount,
+				is_free_item: item.pos_is_free_item ? 1 : 0,
+				is_offer: item.pos_is_offer,
+				gift_card_issue: item.gift_card_issue,
+			})) as never,
 			payments: activeLegs.value.map((leg) => ({
 				mode_of_payment: leg.mode_of_payment,
 				amount: leg.base_amount,
@@ -1380,6 +1389,7 @@ const offlineBlockerMessages = computed(() => {
 			is_return: cartStore.isReturnMode,
 		},
 		offlinePaymentModes: posStore.offlinePaymentModes,
+		allowZeroRatedItems: posStore.allowZeroRatedItems,
 		outstanding: remainingAmount.value,
 		catalog: offlineStore.catalogStatus,
 		dbState: offlineStore.dbState,
