@@ -185,7 +185,7 @@ When connectivity returns:
 | Order history | Only online orders visible in history |
 | Shift closing | Requires connectivity to close the shift |
 | Shift opening | Requires connectivity. A shift that is already open keeps working offline |
-| Signing in | Requires connectivity. Reloading the page while offline shows the sign-in screen until the connection returns; queued sales stay on the device |
+| Signing in | A fresh sign-in needs connectivity. Once signed in, the session is remembered on the device, so reloading the page while offline keeps the till working; the server still decides what that session may do when it answers |
 | Expenses and bank drops | Require connectivity |
 | Gift cards and customer credit | Require connectivity |
 | Storage | IndexedDB. X POS asks for persistent storage, but clearing site data can still remove queued sales, so sync (or use **Export** in the Offline Invoices panel) before clearing anything |

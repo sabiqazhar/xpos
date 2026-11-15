@@ -49,7 +49,7 @@ These are things the desktop app did, or tried to do, that a browser till does n
 
 | Capability | Desktop app (unfinished) | Browser / PWA in v3 |
 |---|---|---|
-| Sign in with no connection | Checked a password hash stored locally | Needs the server. If the page is reloaded while offline, the till shows the sign-in screen until the connection returns. Queued sales stay on the device and sync after sign-in. |
+| Sign in with no connection | Checked a password hash stored locally | A fresh sign-in needs the server. Once signed in, the session is remembered on the device: reloading while offline keeps the till running. The server still authorises every request it receives. |
 | Open or close a shift offline | Wrote the shift locally and synced it later | Needs a connection. An already open shift keeps working offline. |
 | Expenses and bank drops offline | Stored locally | Need a connection (they post `POS Cash Movement` directly). |
 | Several tills sharing one local hub with no internet | Hub/till LAN sync | Not available. Each till talks to the ERPNext server. Sales queue on each till while it is offline. |

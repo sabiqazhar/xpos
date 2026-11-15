@@ -23,9 +23,12 @@ if (import.meta.env.PROD) {
 			.then((registration) => {
 				console.log("[XPOS PWA] Service worker registered for", registration.scope);
 
+				// A waiting worker is offered through the status banner, which knows when
+				// a sale or a sync is in flight; it is never swapped mid-tender.
 				if (registration.waiting && navigator.serviceWorker.controller) {
 					noteWaitingWorker(registration.waiting);
 				}
+
 				registration.addEventListener("updatefound", () => {
 					const installing = registration.installing;
 					if (!installing) return;
@@ -50,6 +53,8 @@ if (import.meta.env.PROD) {
 }
 
 async function initializeBrowserStorage(): Promise<void> {
+	// The persistent-storage grant and its warning are the offline store's job; this
+	// only makes sure the database is open before the first screen asks for items.
 	try {
 		const { ensureDatabaseReady } = await import("@/services/idbService");
 		await ensureDatabaseReady();
